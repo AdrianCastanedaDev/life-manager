@@ -1,0 +1,115 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  items    Item[]
+  expenses Expense[]
+  tags     Tag[]
+
+  @@map("users")
+}
+
+model Item {
+  id             String       @id @default(cuid())
+  userId         String       @map("user_id")
+  name           String
+  description    String?
+  category       ItemCategory
+  priority       ItemPriority
+  status         ItemStatus   @default(WANTED)
+  estimatedPrice Float        @map("estimated_price")
+  actualPrice    Float?       @map("actual_price")
+  imageUrl       String?      @map("image_url")
+  purchaseUrl    String?      @map("purchase_url")
+  notes          String?
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("items")
+}
+
+enum ItemCategory {
+  PERFUME
+  SHOES
+  CLOTHING
+  ELECTRONICS
+  ACCESSORIES
+  OTHER
+}
+
+enum ItemPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ItemStatus {
+  WANTED
+  SAVED
+  PURCHASED
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  userId      String          @map("user_id")
+  description String
+  amount      Float
+  category    ExpenseCategory
+  period      ExpensePeriod
+  date        DateTime
+  notes       String?
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("expenses")
+}
+
+enum ExpenseCategory {
+  FOOD
+  TRANSPORT
+  ENTERTAINMENT
+  SHOPPING
+  BILLS
+  HEALTH
+  OTHER
+}
+
+enum ExpensePeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  name      String
+  color     String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@map("tags")
+}
