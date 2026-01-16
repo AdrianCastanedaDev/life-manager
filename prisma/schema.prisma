@@ -35,13 +35,16 @@ model Item {
   status         ItemStatus   @default(WANTED)
   estimatedPrice Float        @map("estimated_price")
   actualPrice    Float?       @map("actual_price")
+  minPrice       Float?       @map("min_price")
+  maxPrice       Float?       @map("max_price")
   imageUrl       String?      @map("image_url")
   purchaseUrl    String?      @map("purchase_url")
   notes          String?
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime     @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemPrices ItemPrice[]
 
   @@map("items")
 }
@@ -112,4 +115,32 @@ model Tag {
 
   @@unique([userId, name])
   @@map("tags")
+}
+
+model Store {
+  id        String   @id @default(cuid())
+  name      String
+  url       String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  itemPrices ItemPrice[]
+
+  @@map("stores")
+}
+
+model ItemPrice {
+  id        String   @id @default(cuid())
+  itemId    String   @map("item_id")
+  storeId   String   @map("store_id")
+  price     Float
+  url       String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  item  Item  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, storeId])
+  @@map("item_prices")
 }
